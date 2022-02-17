@@ -33,6 +33,20 @@ class App extends Component<AppProp,AppState>{
       })   
       this.interactElementNumber++
   }
+  addSelected(event:MouseEvent){
+  
+    document.querySelectorAll('.interact-item.selected').forEach(e=>e.classList.remove('selected'))
+    const target:HTMLElement= event.target as HTMLElement
+    if(target.classList.contains('interact-item')){
+      target.classList.add('selected')
+    }
+  }
+  componentDidMount(){
+    window.addEventListener('click',this.addSelected)
+  }
+  componentWillUnmount(){
+    window.removeEventListener('click',this.addSelected)
+  }
   render(): ReactNode {
       return <>
         <div className='interact-toolbar'>
