@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@reduxjs/toolkit": "^1.7.2",
     "@types/node": "^16.7.13",
     "@types/react": "^17.0.20",
     "@types/react-dom": "^17.0.9",
     "interactjs": "^1.10.11",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-redux": "^7.2.6",
     "react-scripts": "4.0.3",
+    "redux": "^4.1.2",
     "typescript": "^4.4.2"
   },
   "scripts": {
@@ -34,6 +37,26 @@
       "semi": [
         2,
         "never"
+      ],
+      "indent": [
+        2,
+        "tab"
+      ],
+      "space-infix-ops": [
+        2,
+        {
+          "int32Hint": false
+        }
+      ],
+      "space-in-parens": [
+        2,
+        "always"
+      ],
+      "comma-spacing": [
+        2,
+        {
+          "after": true
+        }
       ]
     }
   },
@@ -51,6 +74,7 @@
   },
   "devDependencies": {
     "@interactjs/types": "^1.10.11",
+    "@types/react-redux": "^7.1.22",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "antd": "^4.18.7",
