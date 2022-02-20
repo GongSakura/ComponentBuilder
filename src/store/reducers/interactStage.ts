@@ -5,18 +5,20 @@ export interface interactStageState{
 }
 const initialState:interactStageState = {
 	stageScale:1
+	
 }
-export const interactStageSlice =  createSlice( {
+export const interactStageSlice =  createSlice({
 	name:'interactStage',
 	initialState:initialState,
 	reducers:{
-		setStageScale:( state, action:PayloadAction<number> )=>{
-			console.log( 'action creator' )
-			console.log( action.payload )
+		setStageScale:(state, action:PayloadAction<number>)=>{
+			console.log('action creator')
+			console.log(action.payload)
 			state.stageScale = action.payload
 		}
+
 	}
-} )
+})
 
 // export action creators 
 export const {setStageScale}  = interactStageSlice.actions

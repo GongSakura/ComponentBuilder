@@ -1,13 +1,15 @@
 
-import React, { ReactNode, Component, ChangeEvent, ReactElement } from 'react'
+import React, { ReactNode, Component, ReactElement, ChangeEvent } from 'react'
 import InteractItem from './components/interactItem'
-// import type { InteractItemProps} from './components/interactItem'
+import InteractSetup from './components/interactSetup'
 import { connect, ConnectedProps } from 'react-redux'
 
 import {setStageScale} from './store/reducers/interactStage'
 import './App.less'
+import {Button} from 'antd'
 
-const ConnectedApp = connect( null, {setStageScale} )
+
+const ConnectedApp = connect(null, {setStageScale})
 
 interface AppState{
   interactElements:Array<ReactElement>
@@ -20,6 +22,7 @@ interface AppState{
   }
 }
 type AppProps = ConnectedProps<typeof ConnectedApp>
+
 
 class App extends Component<AppProps, AppState> {
    
@@ -38,8 +41,8 @@ class App extends Component<AppProps, AppState> {
   	y:0,
   }
 
-  constructor ( props:AppProps ) {
-  	super( props )
+  constructor (props:AppProps) {
+  	super(props)
   	this.state = {
   		interactElements:[],
   		stageScale:1,
@@ -50,54 +53,55 @@ class App extends Component<AppProps, AppState> {
   			y:0
   		}
   	}
-  	this.addInteractElement = this.addInteractElement.bind( this )
-  	this.handleScaleStageEvent = this.handleScaleStageEvent.bind( this )
-  	this.handleResizeStageEvent = this.handleResizeStageEvent.bind( this )
-  	this.handleKeyDownEvent = this.handleKeyDownEvent.bind( this )
-  	this.handleKeyUpEvent = this.handleKeyUpEvent.bind( this )
-  	this.handleMouseEvent = this.handleMouseEvent.bind( this )
+  	this.addInteractElement = this.addInteractElement.bind(this)
+  	this.handleScaleStageEvent = this.handleScaleStageEvent.bind(this)
+  	this.handleResizeStageEvent = this.handleResizeStageEvent.bind(this)
+  	this.handleKeyDownEvent = this.handleKeyDownEvent.bind(this)
+  	this.handleKeyUpEvent = this.handleKeyUpEvent.bind(this)
+  	this.handleMouseEvent = this.handleMouseEvent.bind(this)
 
   }
  
-  addInteractElement ( event: React.MouseEvent ):void{
-  	event.preventDefault()
-  	const interactProps = {
-  		draggable:true,
-  		dropzone:false,
-  		resizable:true
-  	}
-  	const updateInteractElements:Array<ReactElement> = [...this.state.interactElements]
-  	updateInteractElements.push( <InteractItem key={this.interactElementNumber} {...interactProps}><div>test-dom</div></InteractItem> )
-  	this.setState( {
-  		interactElements:updateInteractElements
-  	} )   
-  	this.interactElementNumber++
+  addInteractElement (event: React.MouseEvent):void{
+    	event.preventDefault()
+    	const interactProps = {
+    		draggable:true,
+    		dropzone:true,
+    		resizable:true,
+  			id:'i-' + this.interactElementNumber
+    	}
+    	const updateInteractElements:Array<ReactElement> = [...this.state.interactElements]
+    	updateInteractElements.push(<InteractItem key={this.interactElementNumber} {...interactProps}><div>test-dom</div></InteractItem>)
+    	this.setState({
+    		interactElements:updateInteractElements
+    	})   
+    	this.interactElementNumber++
   }
-  handleSelectItemEvent ( event:MouseEvent ):void {
+  handleSelectItemEvent (event:MouseEvent):void {
   
-  	document.querySelectorAll( '.interact-item.selected' ).forEach( e=>e.classList.remove( 'selected' ) )
+  	document.querySelectorAll('.interact-item.selected').forEach(e=>e.classList.remove('selected'))
   	const target:HTMLElement = event.target as HTMLElement
-  	if( target.classList.contains( 'interact-item' ) ) {
-  		target.classList.add( 'selected' )
+  	if(target.classList.contains('interact-item')) {
+  		target.classList.add('selected')
   	}
   }
-  handleScaleStageEvent ( event:WheelEvent ):void {
-  	event.preventDefault()
-  	if( event.metaKey || event.altKey ) {
-  	
+  handleScaleStageEvent (event:WheelEvent):void {
+  
+  	if(event.metaKey || event.altKey) {
+  		event.preventDefault()
   		const oldStageScale = this.state.stageScale
   		let newStageScale = oldStageScale
-  		if( event.deltaY > 0 && oldStageScale > this.scaleLowerBound ) {
+  		if(event.deltaY > 0 && oldStageScale > this.scaleLowerBound) {
   			// scale down
   			oldStageScale < 1 ? newStageScale -= this.scaleSmallStep : newStageScale -= this.scaleLargeStep
-  		}else if( event.deltaY < 0 && oldStageScale < this.scaleUpperBound ) {
+  		}else if(event.deltaY < 0 && oldStageScale < this.scaleUpperBound) {
   			oldStageScale < 1 ? newStageScale += this.scaleSmallStep : newStageScale += this.scaleLargeStep
   		}
-  		if( newStageScale !== oldStageScale ) {
-  			this.props.setStageScale( newStageScale )
-  			this.setState( {
+  		if(newStageScale !== oldStageScale) {
+  			this.props.setStageScale(newStageScale)
+  			this.setState({
   				stageScale:newStageScale,
-  			} )
+  			})
 
   			const rect = this.interactBoard.getBoundingClientRect()
   			const pointer = {
@@ -105,33 +109,34 @@ class App extends Component<AppProps, AppState> {
   				y:event.clientY - rect.y
   			}
   			const mousePointTo = {
-  				x:( pointer.x - this.state.stagePosition.x ) / oldStageScale,
-  				y:( pointer.y - this.state.stagePosition.y ) / oldStageScale
+  				x:(pointer.x - this.state.stagePosition.x) / oldStageScale,
+  				y:(pointer.y - this.state.stagePosition.y) / oldStageScale
   			}
 
-  			this.setState( {
+  			this.setState({
   				stagePosition:{
   					x:pointer.x - mousePointTo.x * newStageScale,
   					y:pointer.y - mousePointTo.y * newStageScale,
   				}
-  			} )
+  			})
   		}
       
   	}
   }
-  handleResizeStageEvent ( event:ChangeEvent ) {
+  handleResizeStageEvent (event:ChangeEvent):void {
+
+	  
   	const target = event.currentTarget as HTMLInputElement
-  	if( target.classList.contains( 'page-width' ) ) {
-  		const value = parseInt( target.value ) || 0
-  		this.setState( {stageWidth:value} )
-  	}else if( target.classList.contains( 'page-height' ) ) {
-  		const value = parseInt( target.value ) || 0
-  		this.setState( {stageHeight:value} )
+  	if(target.classList.contains('stage-width')) {
+  		const value = parseInt(target.value) || 0
+  		this.setState({stageWidth:value})
+  	}else if(target.classList.contains('stage-height')) {
+  		const value = parseInt(target.value) || 0
+  		this.setState({stageHeight:value})
   	}
   }
-  handleMouseEvent ( event:MouseEvent ) {
-
-  	switch ( event.type ) {
+  handleMouseEvent (event:MouseEvent):void {
+  	switch (event.type) {
   	case 'mouseenter':
   		this.mouseInBoard = true
   		break
@@ -139,21 +144,21 @@ class App extends Component<AppProps, AppState> {
   		this.mouseInBoard = false
   		break
   	case 'mousemove':
-  		if( this.grabInBoard && this.moveInBoard ) {
+  		if(this.grabInBoard && this.moveInBoard) {
   			const n_x = this.state.stagePosition.x + event.clientX - this.mousePosition.x
   			const n_y = this.state.stagePosition.y + event.clientY - this.mousePosition.y
-  			this.setState( {
+  			this.setState({
   				stagePosition:{
   					x:n_x,
   					y:n_y
   				}
-  			} )
+  			})
   			this.mousePosition.x = event.clientX
   			this.mousePosition.y = event.clientY
   		}
   		break
   	case 'mousedown':
-  		if( this.grabInBoard ) {
+  		if(this.grabInBoard) {
   			this.moveInBoard = true
   			this.mousePosition.x = event.clientX
   			this.mousePosition.y = event.clientY
@@ -164,76 +169,88 @@ class App extends Component<AppProps, AppState> {
   		break
 
   	}
-    
   }
-  handleKeyDownEvent ( event:KeyboardEvent ) {
-  	event.preventDefault()
-  	if( event.code === 'Space' && this.mouseInBoard ) {
+  handleKeyDownEvent (event:KeyboardEvent):void {
+	  
+  	if(event.code === 'Space' && this.mouseInBoard) {
+  		event.preventDefault()
   		this.interactBoard.style.cursor = 'grab'
   		this.grabInBoard = true
   	}
   }
-  handleKeyUpEvent ( event:KeyboardEvent ) {
-  	event.preventDefault()
-  	if( event.code === 'Space' ) {
+  handleKeyUpEvent (event:KeyboardEvent):void {    
+  	if(event.code === 'Space') {
+		  	event.preventDefault()
   		this.interactBoard.style.cursor = ''
   		this.grabInBoard = false
   	}
   }
 
   componentDidMount () {
-  	this.interactBoard = document.querySelector( '#interact-board' ) as HTMLElement
-  	this.interactStage = document.querySelector( '#interact-stage' ) as HTMLElement
+  	this.interactBoard = document.querySelector('#interact-board') as HTMLElement
+  	this.interactStage = document.querySelector('#interact-stage') as HTMLElement
 
-  	this.interactBoard?.addEventListener( 'click', this.handleSelectItemEvent )
-  	this.interactBoard?.addEventListener( 'mousemove', this.handleMouseEvent )
-  	this.interactBoard?.addEventListener( 'mousedown', this.handleMouseEvent )
-  	this.interactBoard?.addEventListener( 'mouseup', this.handleMouseEvent )
-  	this.interactBoard?.addEventListener( 'mouseenter', this.handleMouseEvent )
-  	this.interactBoard?.addEventListener( 'mouseleave', this.handleMouseEvent )
+  	this.interactBoard?.addEventListener('click', this.handleSelectItemEvent)
+  	this.interactBoard?.addEventListener('mousemove', this.handleMouseEvent)
+  	this.interactBoard?.addEventListener('mousedown', this.handleMouseEvent)
+  	this.interactBoard?.addEventListener('mouseup', this.handleMouseEvent)
+  	this.interactBoard?.addEventListener('mouseenter', this.handleMouseEvent)
+  	this.interactBoard?.addEventListener('mouseleave', this.handleMouseEvent)
 
-  	document.addEventListener( 'keydown', this.handleKeyDownEvent )
-  	document.addEventListener( 'keyup', this.handleKeyUpEvent )
-  	this.interactStage?.addEventListener( 'wheel', this.handleScaleStageEvent )
+  	document.addEventListener('keydown', this.handleKeyDownEvent)
+  	document.addEventListener('keyup', this.handleKeyUpEvent)
+  	this.interactStage?.addEventListener('wheel', this.handleScaleStageEvent)
   }
   componentWillUnmount () {
-  	this.interactBoard?.removeEventListener( 'click', this.handleSelectItemEvent )
-  	this.interactBoard?.removeEventListener( 'mousemove', this.handleMouseEvent )
-  	this.interactBoard?.removeEventListener( 'mousedown', this.handleMouseEvent )
-  	this.interactBoard?.removeEventListener( 'mouseup', this.handleMouseEvent )
-  	this.interactBoard?.removeEventListener( 'mouseenter', this.handleMouseEvent )
-  	this.interactBoard?.removeEventListener( 'mouseleave', this.handleMouseEvent )
+  	this.interactBoard?.removeEventListener('click', this.handleSelectItemEvent)
+  	this.interactBoard?.removeEventListener('mousemove', this.handleMouseEvent)
+  	this.interactBoard?.removeEventListener('mousedown', this.handleMouseEvent)
+  	this.interactBoard?.removeEventListener('mouseup', this.handleMouseEvent)
+  	this.interactBoard?.removeEventListener('mouseenter', this.handleMouseEvent)
+  	this.interactBoard?.removeEventListener('mouseleave', this.handleMouseEvent)
 
-  	document.removeEventListener( 'keydown', this.handleKeyDownEvent )
-  	document.removeEventListener( 'keyup', this.handleKeyUpEvent )
+  	document.removeEventListener('keydown', this.handleKeyDownEvent)
+  	document.removeEventListener('keyup', this.handleKeyUpEvent)
 
-  	this.interactStage?.removeEventListener( 'wheel', this.handleScaleStageEvent )
+  	this.interactStage?.removeEventListener('wheel', this.handleScaleStageEvent)
   }
-  render (): ReactNode {
-  
+
+  componentDidUpdate(){
+	  console.log(this.state.interactElements[0])
+	  
+  }
+  render (): ReactNode { 
+	 const dom = document.createElement('div')
+	 dom.innerText = 'text'
   	return <>
-  		<div id='interact-toolbar'>
-  			<button onClick={this.addInteractElement}>Add</button>
+	
+	  <div id='interact-toolbar'>
+		   
+  			<Button  onClick={this.addInteractElement}>DIV</Button>
+			  
   			<div id='interact-controller'>
   				<span>Width</span>
-  				<input className='page-width' type="text" value={this.state.stageWidth} onChange={this.handleResizeStageEvent}/>
+  				<input className='stage-width'  type="text"  defaultValue={this.state.stageWidth}  onChange={this.handleResizeStageEvent}/>
   				<span>Height</span>
-  				<input className='page-height' type="text"  value={this.state.stageHeight} onChange={this.handleResizeStageEvent}/>
-  				<span>SclaeRatio: {this.state.stageScale.toFixed( 2 )}</span>
+  				<input className='stage-height' type="text"  defaultValue={this.state.stageHeight}  onChange={this.handleResizeStageEvent}/>
+  				<span>SclaeRatio: {this.state.stageScale.toFixed(2)}</span>
+	
   			</div>
   		</div>
   		<div id='interact-board'>
   			<div id='interact-stage' style={
   				{transform:`scale(${this.state.stageScale})`,
-  					width:this.state.stageWidth + '%',
-  					height:this.state.stageHeight + '%',
+  					minWidth:this.state.stageWidth + '%',
+  					minHeight:this.state.stageHeight + '%',
   					left:this.state.stagePosition.x + 'px',
   					top:this.state.stagePosition.y + 'px'}}> 
   				{this.state.interactElements}
   			</div>
-  		</div>
+			 
+  		</div> 
   	</>
   }
 }
+ 
 
-export default ConnectedApp( App )
+export default ConnectedApp(App)

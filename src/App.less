@@ -1,15 +1,16 @@
 #interact-board{
     position: relative;
-    background: rgb(225, 231, 237);
+    background: rgb(222, 222, 222);
     min-width: 100vw;
     min-height: calc(100vh - 64px);
-    overflow: auto;
-
-
+    overflow: hidden;
     & #interact-stage{
         position: absolute;
-        background: rgb(255, 213, 0);
-        transform-origin:top left
+        box-sizing: content-box;
+        background: white;
+
+        transform-origin:top left;
+        overflow: auto;
     }
     
 }
@@ -28,7 +29,8 @@
         justify-content: center;
         color: white;
         span{
-            padding: 0 4px;
+            padding: 0 12px;
         }
     }
 }
+

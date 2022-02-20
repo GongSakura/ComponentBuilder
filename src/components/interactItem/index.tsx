@@ -1,24 +1,23 @@
 
-import React, { cloneElement, ReactChild, ReactElement } from 'react'
+import React, { ReactChild } from 'react'
 import { connect, ConnectedProps } from 'react-redux'
 
 import interact from 'interactjs'
-import modifiers from '@interactjs/modifiers/plugin'
-import type { DraggableOptions, DropzoneOptions, ResizableOptions, Interactable, DragEvent, ResizeEvent, PointerEventType } from '@interactjs/types/index'
+import type { DraggableOptions, DropzoneOptions, ResizableOptions, Interactable, DragEvent, ResizeEvent, DropEvent } from '@interactjs/types/index'
 
 import './index.less'
 import {RootState} from '../../store'
 
-function mapStateToProps( state:RootState ){
-	console.log( "mapState", state )
+function mapStateToProps(state:RootState){
 	return {
 		stageScale:state.interactStage.stageScale
 	}
 }
 
-const ConnectedInteractItem = connect( mapStateToProps )
+const ConnectedInteractItem = connect(mapStateToProps)
 
 export interface InteractItemProps extends ConnectedProps<typeof ConnectedInteractItem> {
+
     draggable: boolean
     draggableOptions?: DraggableOptions
     dropzone: boolean
@@ -26,6 +25,8 @@ export interface InteractItemProps extends ConnectedProps<typeof ConnectedIntera
     resizable: boolean
     resizableOptions?: ResizableOptions
 	children:ReactChild
+	id:string
+
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractItemState{
@@ -39,6 +40,7 @@ class InteractItem extends React.Component<InteractItemProps, InteractItemState>
     interact?: Interactable
     draggableOptions: DraggableOptions
     resizableOptions: ResizableOptions
+	dropzoneOptions: DropzoneOptions
     mousePosition={
     	x:0,
     	y:0
@@ -47,134 +49,166 @@ class InteractItem extends React.Component<InteractItemProps, InteractItemState>
     	x:0,
     	y:0
     }
-     itemSize={
+    itemSize={
      	width:50,
      	height:50
-     }
-     temp={
-     	x:0,
-     	y:0
-     }
-     constructor ( props: InteractItemProps ) {
-      	super( props )
+    }
+	
+    constructor (props: InteractItemProps) {
+      	super(props)
       	this.draggableOptions = {
-      		onstart:( event: DragEvent )=>{
+      		onstart:(event: DragEvent)=>{
       			this.mousePosition.x = event.clientX
       			this.mousePosition.y = event.clientY
       			const target:HTMLElement = event.target as HTMLElement
-      			if( !target.classList.contains( 'dragging' ) ) {
-      				target.classList.add( 'dragging' )
+      			if(!target.classList.contains('dragging')) {
+      				target.classList.add('dragging')
       			}
       		},
-      		onmove: ( event: DragEvent ) => {
-      			// console.log( 'onmove',event )
-                 
-      			this.itemPosition.x += event.dx / ( this.props.stageScale || 1 )
-      			this.itemPosition.y += event.dy / ( this.props.stageScale  || 1 )
-      			this.temp.x += event.dx / ( this.props.stageScale || 1 )
-      			this.temp.y += event.dy / ( this.props.stageScale || 1 )
-      			// update
+      		onmove: (event: DragEvent) => {
+      			this.itemPosition.x += event.dx / (this.props.stageScale || 1)
+      			this.itemPosition.y += event.dy / (this.props.stageScale  || 1)
+    	
+
+    			this.itemPosition.x < 0 ? this.itemPosition.x = 0 : this.mousePosition.x = event.clientX
+    			this.itemPosition.y < 0 ? this.itemPosition.y = 0 : this.mousePosition.y = event.clientY
+
+    			// update
+    			const target = event.target as HTMLElement
+    			Object.assign(target.style, {
+    				top:this.itemPosition.y + 'px',
+    				left:this.itemPosition.x + 'px'
+    			})
+				
+    			// execute hook
+    			if (typeof props.draggableOptions?.onmove === 'function') {
+    				props.draggableOptions.onmove(event)
+    			}
+				
+
+      		},
+
+      		onend: (event: DragEvent) => {
+    			console.log('onend', event)
+				
       			const target = event.target as HTMLElement
-      			Object.assign( target.style, {
-      				top:this.itemPosition.y + 'px',
-      				left:this.itemPosition.x + 'px'
-      			} )
-
-      			// execute hook
-      			if ( typeof props.draggableOptions?.onmove === 'function' ) {
-      				props.draggableOptions.onmove( event )
-      			}
-
-      			this.mousePosition.y = event.clientY
-      			this.mousePosition.x = event.clientX
-      		},
-
-      		onend: ( event: DragEvent ) => {
-      			console.log( 'temp', this.temp, this.props.stageScale )
-                 
-      			const target = event.target as HTMLElement
-      			target.classList.remove( 'dragging' )
-      			if( !target.classList.contains( 'selected' ) ) {
-      				target.classList.add( 'selected' )
+      			target.classList.remove('dragging')
+      			if(!target.classList.contains('selected')) {
+      				target.classList.add('selected')
       			}
       		},
-      		modifiers:[interact.modifiers.restrictRect( {
-      			restriction:'parent',
+      		modifiers:[interact.modifiers.restrictRect({
+    			restriction:"#interact-board",
       			endOnly:true
-      		} )]
+      		})]
       	}
       	this.resizableOptions = {
       		margin: 4,
-      		edges: Object.assign( { bottom: true, right: true, top: true, left: true }, props.resizableOptions?.edges ),
+      		edges: Object.assign({ bottom: true, right: true, top: true, left: true }, props.resizableOptions?.edges),
       		invert: props.resizableOptions?.invert || 'reposition',
-      		onstart:( event:ResizeEvent )=>{
+      		onstart:(event:ResizeEvent)=>{
       			const target = event.target as HTMLElement
-      			if( !target.classList.contains( 'selected' ) ) {
-      				target.classList.add( 'selected' )
+      			if(!target.classList.contains('selected')) {
+      				target.classList.add('selected')
       			}
       		},
-      		onmove: ( event: ResizeEvent ) => {
-                
-      			if ( typeof props.resizableOptions?.onmove === 'function' ) {
-      				props.resizableOptions.onmove( event )
-      			}
+      		onmove: (event: ResizeEvent) => {
       			// update
+    			if(event.edges?.left){
+    				this.itemPosition.x += event.delta.x
+    			}
+    			if(event.edges?.top){
+    				this.itemPosition.y += event.delta.y
+    			}
+    			this.itemSize.width = event.rect.width
+    			this.itemSize.height = event.rect.height
+    			Object.assign(this.node?.style, {
+    				width:this.itemSize.width + 'px',
+    				height:this.itemSize.height + 'px',
+    				top:this.itemPosition.y + 'px',
+    				left:this.itemPosition.x + 'px'
+    			})
 
-      			const updateItemSize = {
-      				width:event.rect.width,
-      				height:event.rect.height
+     			if (typeof props.resizableOptions?.onmove === 'function') {
+      				props.resizableOptions.onmove(event)
       			}
-
                
       		},
-      		modifiers:[interact.modifiers.restrictSize( {
-      			min:{width:4, height:4}
-      		} )]
+      		modifiers:[interact.modifiers.restrictSize({
+      			min:{width:12, height:12}
+      		})]
 
       	}
-      	this.setInteractions = this.setInteractions.bind( this )
-     }
+
+    	this.dropzoneOptions = {
+    		accept:'.interact-item',
+    		overlap:0.25,
+    		ondragenter:(event:DropEvent)=>{
+    			console.log('drop entry', event)
+				
+    			const current = event.target as HTMLElement
+    			current.classList.add('dropzone')
+    			
+    		},
+    		ondrop:(event:DropEvent)=>{
+    			console.log('on drop', event)
+    			const current = event.target as HTMLElement
+    			current.classList.remove('dropzone')
+    		},
+    		ondragleave:(event:DropEvent)=>{
+    			const current = event.target as HTMLElement
+    			current.classList.remove('dropzone')
+    		}
+    	}
+      	this.setInteractions = this.setInteractions.bind(this)
+    }
    
-     setInteractions () {
+    setInteractions () {
       	this.interact?.unset()
-      	this.interact = interact( this.node as HTMLElement )
-      	if ( this.props.draggable ) {
-      		this.interact?.draggable( this.draggableOptions )
+      	this.interact = interact(this.node as HTMLElement)
+      	if (this.props.draggable) {
+      		this.interact?.draggable(this.draggableOptions)
       	}
-      	if ( this.props.resizable ) {
-      		this.interact?.resizable( this.resizableOptions )
+      	if (this.props.resizable) {
+      		this.interact?.resizable(this.resizableOptions)
       	}
-     }
+		  	if (this.props.dropzone) {
+      		this.interact?.dropzone(this.dropzoneOptions)
+      	}
+    }
 
-     handleItemClick( event:MouseEvent ){
+    handleItemClick(event:MouseEvent){
 
       	const target = event.target as HTMLElement
-      	if( !target.classList.contains( 'selected' ) ) {
-      		target.classList.add( 'selected' )
+      	if(!target.classList.contains('selected')) {
+      		target.classList.add('selected')
       	}
      
-     }
-     componentDidMount () { 
-      	this.node?.addEventListener( 'click', this.handleItemClick )
+    }
+    componentDidMount () { 
+    	console.log(this.node)
+		
+      	this.node?.addEventListener('click', this.handleItemClick)
       	this.setInteractions()
-     }
+    }
     
-     componentDidUpdate () {
+    componentDidUpdate () {
       	this.setInteractions()
-     }
-     componentWillUnmount(){
-      	this.node?.removeEventListener( 'click', this.handleItemClick )
+    }
+    componentWillUnmount(){
+      	this.node?.removeEventListener('click', this.handleItemClick)
       	this.interact?.unset() 
-     }
-     render (): React.ReactNode {
+    }
+    render (): React.ReactNode {
      	return (
-     		<div ref={( node: HTMLDivElement ) => this.node = node} className='interact-item'>
+     		<div id={ this.props.id}       ref={(node: HTMLDivElement) => this.node = node} className='interact-item'>
      			{this.props.children}
      		</div>
      	)
 
-     }
+    }
 }
 
 
-export default ConnectedInteractItem( InteractItem )
+export default ConnectedInteractItem(InteractItem)
+
