@@ -68,7 +68,8 @@ class App extends Component<AppProps, AppState> {
     		draggable:true,
     		dropzone:true,
     		resizable:true,
-  			id:'i-' + this.interactElementNumber
+  			id:'i-' + this.interactElementNumber,
+  			stageScale:this.state.stageScale
     	}
     	const updateInteractElements:Array<ReactElement> = [...this.state.interactElements]
     	updateInteractElements.push(<InteractItem key={this.interactElementNumber} {...interactProps}><div>test-dom</div></InteractItem>)
@@ -223,9 +224,9 @@ class App extends Component<AppProps, AppState> {
 	 const dom = document.createElement('div')
 	 dom.innerText = 'text'
   	return <>
-	
 	  <div id='interact-toolbar'>
 		   
+
   			<Button  onClick={this.addInteractElement}>DIV</Button>
 			  
   			<div id='interact-controller'>

@@ -26,6 +26,7 @@ export interface InteractItemProps extends ConnectedProps<typeof ConnectedIntera
     resizableOptions?: ResizableOptions
 	children:ReactChild
 	id:string
+	stageScale:number
 
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
